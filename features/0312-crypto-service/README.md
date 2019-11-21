@@ -16,18 +16,26 @@ Within decentralized data economy with user-centric approach the user is the one
 
 Identity management and key management are complex topics with which even big players have problems. To help companies and their products build secure and privacy preserving services with SSI they need a simple mechanism to get access to the cryptographic operations within components of the wallets.
 
-Many services provide solutions like secure storage, encrypted communication, secure data transportation and to achieve that they are using secure keys to provide cryptography for their use cases. The problem is that in many cases those keys are generated within their services which reduce the trust and increase the risk of leaking the key.
+### Todays 'Best Practice' approach to cryptographically secured Services 
 
-The ideal solution is that the keys are generated within user agent and that the private (secret) key never leaves that place.
+Many 3rd party services today provide solutions like secure storage, encrypted communication, secure data transportation and to achieve that they are using secure keys to provide cryptography for their use cases. The problem is that in many cases those keys are generated and/or stored within the 3rd party Services - either in the Client App or in the Backend - which requires the users explicit trust into the 3rd parties good intentions. 
 
-Providing general crypto API to the user wallet allows to support generic use cases where a cryptographic layer is required in the service, for example:
+Even in the case that a 3rd party has the best possible intentions in keeping the users secrets save and private. There is still the increased risk for the users keys of leakage or beeing compromised while beeing stored with a (centralized) 3rd party Service.
+
+Last but not least the users usage of multiple such cryptografically secured services would lead to the distribution of the users secrets over different systems where the user needs to keep track of them and manage them via differnt 3rd party tools.
+
+### Vision - seperation of Service-(Business-)Logic and Identity Artefacts
+
+In the context of SSI and decentralized identity the ideal solution is that the keys are generated within user agent and that the private (secret) key never leaves that place. This would be a clear seperation of a services business logic and the users keys which we also count to the users unique sets of identifying information (identity artefacts).
+
+After seperating these two domains their follows the obvious need for providing a general crypto API to the user wallet which allows to support generic use cases where a cryptographic layer is required in the 3rd party service business logic, for example:
 
 - encrypted data in data vaults
 - encrypted messages within 3rd party service
 - additional security layers outside of Agent ecosystem, data transportation, messaging over non-DIDComm protocols.
 - backup/restore systems
 
-Desired outcome would be to have an Agent which is able to expose the crypto API to external services.
+The desired outcome would be to have an Agent which is able to expose a standardized Crypto Services API to external 3rd party services which then can implement cryptographically secured aplications without the need to have access to the actual user secrets.
 
 ## Tutorial
 
