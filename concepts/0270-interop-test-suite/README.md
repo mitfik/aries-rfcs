@@ -3,9 +3,9 @@
 - Status: [PROPOSED](/README.md#proposed)
 - Since: 2019-10-25
 - Status Note: Codifies some thinking about scope and mental model that are already socialized. Provides some new thinking as well.
-- Supersedes: Partially, and in some ways, [Indy HIPE 0015](https://github.com/hyperledger/indy-hipe/blob/master/text/0015-agent-test-suite-interface/README.md) and [Indy HIPE 0016](https://github.com/hyperledger/indy-hipe/blob/master/text/0016-agent-test-suite-v1/README.md). Also, represents answers to questions that the community first posed in [this HackMD doc](https://hackmd.io/JW5b9xYCRGKqyqhVevTZ_g) and first attempted to answer in the [indy-agent repo](https://github.com/hyperledger/indy-agent).
+- Supersedes: Partially, and in some ways, [Indy HIPE 0015](https://github.com/hyperledger/indy-hipe/blob/main/text/0015-agent-test-suite-interface/README.md) and [Indy HIPE 0016](https://github.com/hyperledger/indy-hipe/blob/main/text/0016-agent-test-suite-v1/README.md). Also, represents answers to questions that the community first posed in [this HackMD doc](https://hackmd.io/JW5b9xYCRGKqyqhVevTZ_g) and first attempted to answer in the [indy-agent repo](https://github.com/hyperledger/indy-agent).
 - Start Date: 2018-10-25
-- Tags: concept
+- Tags: [concept](/tags.md#concept)
 
 ## Summary
 
@@ -33,7 +33,7 @@ What we need is a tool that achieves these goals:
 
     >[Other software that offers SSI features](../../concepts/0004-agents/README.md#the-agent-ness-continuum) should also be testable. Here, such components are conflated with agents for simplicity, but it's understood that the suite targets protocol participants no matter what their technical classification.
  
-   Focus on remote interactions that deliver business value: [high-level protocols](../../concepts/0003-protocols/README.md) built atop [DIDComm](../../concepts/0005-didcomm/README.md), such as [credential issuance](../../features/0036-issue-credential/README.md), [proving](../../features/0037-present-proof/README.md), and [introducing](../../features/0028-introduce/README.md), where each [participant](../../concepts/0003-protocols/roles-participants-etc.md#participants) uses different software. DID methods, ledgers, crypto libraries, credential implementationss, and DIDComm infrastructure should have separate tests that are out of scope here. None of these generate deep insight into whether packaged software is interoperable enough to justify purchase decisions; that's the gap we need to plug.
+   Focus on remote interactions that deliver business value: [high-level protocols](../../concepts/0003-protocols/README.md) built atop [DIDComm](../../concepts/0005-didcomm/README.md), such as [credential issuance](../../features/0036-issue-credential/README.md), [proving](../../features/0037-present-proof/README.md), and [introducing](../../features/0028-introduce/README.md), where each [participant](../../concepts/0003-protocols/README.md#participants) uses different software. DID methods, ledgers, crypto libraries, credential implementations, and DIDComm infrastructure should have separate tests that are out of scope here. None of these generate deep insight into whether packaged software is interoperable enough to justify purchase decisions; that's the gap we need to plug.
    
 2. **Describe results in a formal, granular, reproducible way** that supports comparison between agents A and B, and between A at two different points of time or in two different configurations.
 
@@ -89,7 +89,9 @@ The contract between the test suite and the agents it tests is:
 
     Packaging could take various convenient forms. Those testing an agent install the suite in an environment that they control, where their agent is already running, and then configure the suite to talk to their agent.
     
-2. *Evaluate* the **agent under test** by engaging in protocol interactions over a **frontchannel**, and *control* the interactions over a **backchannel**. Both channels use DIDComm over HTTP.
+2. *Evaluate* the **agent under test** by engaging in protocol interactions over a **frontchannel**, and *control* the interactions over a **backchannel**.
+
+    >Note: Initially, this doc stipulated that both channels should use DIDComm over HTTP. This has triggered some dissonance. If an agent doesn't want to talk HTTP, should it have to, just to be tested? If an agent wants to be controlled over a RESTful interface, shouldn't it be allowed to do that? Answers to the preceding two questions have been proposed (use a generic adapter to transform the protocol, but don't make the test suite talk on a different frontchannel; unless all agents expose the same RESTful interface, the only thing we can count on is that agents will have DIDComm support, and the only methdology we have for uniform specification is to describe a DIDComm-based protocol, so yes, backchannel should be DIDComm). These two incompatible opinions are both alive and well in the community, and we are not yet converging on a consensus. Therefore, the actual implementation of the frontchannel and backchannel remains a bit muddy right now. Perhaps matters will clarify as we think longer and/or as we gain experience with implementation.
 
     Over the frontchannel, the test suite and the agent under test look like ordinary agents in the ecosystem; any messages sent over this channel could occur in the wild, with no clue that either party is in testing mode.
     
@@ -149,7 +151,7 @@ The test suite releases implicitly with every merged commit, and is versioned in
 
 * The `major` version of the test suite version corresponds to the provisions of the contract defined in this RFC. Any breaking changes in this RFC will require an increment of the major number.
 
-* The `minor` version of the test suite is a count of how many protocol+version combinations the community knows about. This number is derived from a list of known [PIURIs](../../concepts/0003-protocols/uris.md#piuri) that's autogenerated from metadata about protocols in the `aries-rfcs` repo. Publishing or versioning a protocol in the community thus automatically causes the test suite's minor version to increment.
+* The `minor` version of the test suite is a count of how many protocol+version combinations the community knows about. This number is derived from a list of known [PIURIs](../../concepts/0003-protocols/README.md#piuri) that's autogenerated from metadata about protocols in the `aries-rfcs` repo. Publishing or versioning a protocol in the community thus automatically causes the test suite's minor version to increment.
 
 * The `patch` version of the test suite is the 7-character short form of the git commit hash for the source code from which it is built.
 
@@ -185,7 +187,7 @@ The results of a test suite run are represented in a JSON object that looks like
 
 ### Backchannel
 
-[TODO: reconcile this against what Daniel B and Sam already envisioned. I just made this up off the top of my head...]
+> While the concept of a backchannel has been accepted by the community, there is not alignment with the definition of the backchannel provided here. Rather than maintaining this section as related work in the community evolves the concept, we're adding this note to say "this section will likely change." Once backchannel implementations stabilize with a core definition, we'll refine this section as appropriate.
 
 The backchannel between test suite and agent under test is managed as a standard DIDComm protocol. The identifier for the message family is X. The messages include:
 

@@ -1,11 +1,19 @@
 # Aries RFC 0234: Signature Decorator
 - Authors: [Kyle Den Hartog](kyle.denhartog@evernym.com)
-- Status: [DEMONSTRATED](/README.md#demonstrated)
-- Since: 2019-09-27
-- Status Note: Retroactive port of [this HIPE](https://github.com/kdenhartog/indy-hipe/blob/d421fc77bae87c780aad346d15c0c49939adc281/text/digital-signatures/README.md) (never merged) on which the `did-exchange` and `connection` protocols depend
+- Status: [RETIRED](/README.md#retired)
+- Since: 2020-10-14
+- Status Note: This decorator is retired, replaced with the use of the signed form of the attachment decorator
+([RFC 0017](../../concepts/0017-attachments/README.md#signing-attachments))
 - Supersedes: [this HIPE](https://github.com/kdenhartog/indy-hipe/blob/d421fc77bae87c780aad346d15c0c49939adc281/text/digital-signatures/README.md) (never merged)
 - Start Date: 2019-01-07
 - Tags: [feature](/tags.md#feature), [decorator](/tags.md#decorator)
+
+## RFC ARCHIVED
+
+DO NOT USE THIS RFC.
+
+Use the signed form of the attachment decorator ([RFC 0017](../concepts/../../concepts/0017-attachments/README.md#signing-attachments))
+instead of this decorator.
 
 ## Summary
 
@@ -27,7 +35,7 @@ We'll use the following message as an example:
 
 ```jsonc
 {
-    "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/example/1.0/test_message",
+    "@type": "https://didcomm.org/example/1.0/test_message",
     "@id": "df3b699d-3aa9-4fd0-bb67-49594da545bd",
     "msg": {
         "text": "Hello World!",
@@ -40,10 +48,10 @@ Digitally signing the `msg` object with the `ed25519sha256_single` scheme result
 
 ```jsonc
 {
-    "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/example/1.0/test_message",
+    "@type": "https://didcomm.org/example/1.0/test_message",
     "@id": "df3b699d-3aa9-4fd0-bb67-49594da545bd",
     "msg~sig": {
-      "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/signature/1.0/ed25519Sha512_single",
+      "@type": "https://didcomm.org/signature/1.0/ed25519Sha512_single",
       "sig_data": "base64URL(64bit_integer_from_unix_epoch|msg_object)",
       "signature": "base64URL(digital signature function output)",
       "signer": "base64URL(inlined_signing_verkey)"
@@ -61,7 +69,7 @@ When an Agent receives a DIDComm message with a field decorated with `~sig`, it 
 
 In general, the steps to construct a `~sig` are:
 
-1. Choose a [signature scheme](#signature-schemes). This determines the `~sig` decorator's [message type URI](../../concepts/0003-protocols/uris.md#mturi) (the `@type` seen above) and the signature algorithm.
+1. Choose a [signature scheme](#signature-schemes). This determines the `~sig` decorator's [message type URI](../../concepts/0003-protocols/README.md#mturi) (the `@type` seen above) and the signature algorithm.
 2. Serialize the JSON object to be authenticated to a sequence of bytes (`msg` in the example above). This will be the plaintext input to the signature scheme.
 3. Construct the contents of the new `~sig` object according to the chosen signature scheme with the plaintext as input.
 4. Replace the original object (`msg` in the example above) with the new `~sig` object. The new object's label MUST be equal to the label of the original object appended with "~sig".

@@ -1,9 +1,9 @@
 # Aries RFC 0005: DID Communication
 
 - Authors: [Daniel Hardman](daniel.hardman@gmail.com)
-- Status: [DEMONSTRATED](/README.md#demonstrated)
-- Since: 2019-01-15
-- Status Note: Probably almost mature enough to propose [ACCEPTED](/README.md#rfc-lifecycle) status. 
+- Status: [ACCEPTED](/README.md#accepted)
+- Since: 2019-11-21
+- Status Note: Mature as concept, with multiple implementations.
 - Supersedes: [Indy PR #98](https://github.com/hyperledger/indy-hipe/pull/98)
 - Start Date: 2018-01-05 (approx, backdated)
 - Tags: [concept](/tags.md#concept)
@@ -13,10 +13,12 @@
 Explain the basics of __DID communication__ (__DIDComm__) at a
 high level, and link to other RFCs to promote deeper exploration.
 
+>NOTE: The version of DIDComm collectively defined in Aries RFCs is known by the label "DIDComm V1." A [newer version of DIDComm](https://identity.foundation/didcomm-messaging/spec/) ("DIDComm V2") is now being [incubated](https://github.com/decentralized-identity/didcomm-messaging) at DIF. Many concepts are the same between the two versions, but there are some differences in the details. For information about detecting V1 versus V2, see [Detecting DIDComm Versions](../../features/0044-didcomm-file-and-mime-types/README.md#detecting-didcomm-versions).
+
 ## Motivation
 
-The DID communication between agents is a rich subject with a lot of tribal
-knowledge. Newcomers to the [agent](https://github.com/hyperledger/indy-hipe/pull/86)
+The DID communication between [agents](../0004-agents/README.md) and [agent-like things](../0004-agents/README.md#the-agent-ness-continuum) is a rich subject with a lot of tribal
+knowledge. Newcomers to the decentralized identity
 ecosystem tend to bring mental models that are subtly divergent from
 its paradigm. When they encounter dissonance, DIDComm becomes mysterious.
 We need a standard high-level reference.
@@ -25,17 +27,17 @@ We need a standard high-level reference.
 
 >This discussion assumes that you have a reasonable grasp on topics like
 [self-sovereign identity](https://medium.com/evernym/the-three-models-of-digital-identity-relationships-ca0727cb5186),
-[DIDs and DID Docs](https://w3c-ccg.github.io/did-spec/), and [agents](
-https://github.com/hyperledger/indy-hipe/pull/86). If you find yourself
+[DIDs and DID docs](https://w3c-ccg.github.io/did-spec/), and [agents](
+https://github.com/hyperledger/aries-rfcs/blob/main/concepts/0004-agents/README.md). If you find yourself
 lost, please review that material for background and starting assumptions.
 
-Agents have to interact with one another to get work done. How they
+Agent-like things have to interact with one another to get work done. How they
 talk in general is DIDComm, the subject of this RFC. The specific interactions enabled by
 DIDComm--connecting and maintaining relationships, issuing credentials,
 providing proof, etc.--are called __protocols__; they are described [elsewhere](
-https://github.com/hyperledger/indy-hipe/pull/69).
+https://github.com/hyperledger/aries-rfcs/blob/main/concepts/0003-protocols/README.md).
 
-#### Rough Overview
+### Rough Overview
 
 A typical DIDComm interaction works like this:
 
@@ -77,7 +79,7 @@ not always individuals.
 Before we provide more details, let's explore what drives the design of
 DIDComm.
 
-#### Goals and Ramifications
+### Goals and Ramifications
 
 The DIDComm design attempts to be:
 
@@ -107,7 +109,7 @@ snail mail, carrier pigeon, and more.
 All software design involves tradeoffs. These goals, prioritized as shown,
 lead down an interesting path.
 
-##### Message-Based, Asynchronous, and Simplex
+#### Message-Based, Asynchronous, and Simplex
 
 The dominant paradigm in mobile and web development today is duplex
 request-response. You call an API with certain inputs, and you get
@@ -132,7 +134,7 @@ request-response interactions. All of us have interacted with a friend
 who's emailing or texting us in near-realtime. However, interoperability
 begins with a least-common-denominator assumption that's simpler.
 
-##### Message-Level Security, Reciprocal Authentication
+#### Message-Level Security, Reciprocal Authentication
 
 The security and privacy goals, and the asynchronous+simplex design
 decision, break familiar web assumptions in another way. Servers are
@@ -182,4 +184,5 @@ Name / Link | Implementation Notes
 [Connect.Me](https://www.evernym.com/blog/connect-me-sovrin-digital-wallet/) | Free mobile app from Evernym. Installed via app store on iOS and Android. 
 [Verity](https://www.evernym.com/products/) | Commercially licensed enterprise agent, SaaS or on-prem.
 [Aries Protocol Test Suite](https://github.com/hyperledger/aries-protocol-test-suite) | 
+[Pico Labs](http://picolabs.io/) | [Pico Agents](https://github.com/Picolab/G2S) protocols: connections, trust_ping, basicmessage, routing
  

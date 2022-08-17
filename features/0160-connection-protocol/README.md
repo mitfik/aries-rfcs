@@ -3,7 +3,7 @@
 - Status: [ACCEPTED](/README.md#accepted)
 - Since: 2019-08-06
 - Status Note: This is the protocol with existing uses. It is expected that [RFC 0023 DID Exchange](../../features/0023-did-exchange/README.md) will replace this protocol.
-- Supersedes: [HIPE 0031 - Connection Protocol](https://github.com/hyperledger/indy-hipe/tree/master/text/0031-connection-protocol)
+- Supersedes: [HIPE 0031 - Connection Protocol](https://github.com/hyperledger/indy-hipe/tree/main/text/0031-connection-protocol)
 - Start Date: 2018-06-29
 - Tags: [feature](/tags.md#feature), [protocol](/tags.md#protocol), [test-anomaly](/tags.md#test-anomaly)
 
@@ -79,7 +79,7 @@ No errors are sent in timeout situations. If the inviter or invitee wishes to re
 
 ```jsonc
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/problem_report",
+  "@type": "https://didcomm.org/connections/1.0/problem_report",
   "@id": "5678876542345",
   "~thread": { "thid": "<@id of message related to problem>" },
   "~i10n": { "locale": "en"},
@@ -135,7 +135,7 @@ Invitation Message with Public Invitation DID:
 
 ```json
 {
-    "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/invitation",
+    "@type": "https://didcomm.org/connections/1.0/invitation",
     "@id": "12345678900987654321",
     "label": "Alice",
     "did": "did:sov:QmWbsNYhMrjHiqZDTUTEJs"
@@ -146,7 +146,7 @@ Invitation Message with Keys and URL endpoint:
 
 ```json
 {
-    "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/invitation",
+    "@type": "https://didcomm.org/connections/1.0/invitation",
     "@id": "12345678900987654321",
     "label": "Alice",
     "recipientKeys": ["8HH5gYEeNc3z7PYXmd54d4x6qAfCNrqQqEB3nS7Zfu7K"],
@@ -159,7 +159,7 @@ Invitation Message with Keys and DID Service Endpoint Reference:
 
 ```json
 {
-    "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/invitation",
+    "@type": "https://didcomm.org/connections/1.0/invitation",
     "label": "Alice",
     "recipientKeys": ["8HH5gYEeNc3z7PYXmd54d4x6qAfCNrqQqEB3nS7Zfu7K"],
     "serviceEndpoint": "did:sov:A2wBhNYhMrjHiqZDTUYH7u;routeid",
@@ -209,7 +209,7 @@ Invitation:
 
 ```json
 {
-    "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/invitation",
+    "@type": "https://didcomm.org/connections/1.0/invitation",
     "@id": "12345678900987654321",
     "label": "Alice",
     "recipientKeys": ["8HH5gYEeNc3z7PYXmd54d4x6qAfCNrqQqEB3nS7Zfu7K"],
@@ -247,9 +247,12 @@ The _inviter_ will then publish or transmit the invitation URL in a manner avail
 #### Invitation Processing
 
 When they _invitee_ receives the invitation URL, there are two possible user flows that depend on the SSI preparedness of the individual. If the individual is new to the SSI universe, they will likely load the URL in a browser. The resulting page will contain instructions on how to get started by installing software or a mobile app. That install flow will transfer the invitation message to the newly installed software.
-A user that already has those steps accomplished will have the URL received by software directly. That sofware can read the invitation message directly out of the `c_i` query parameter, without loading the URL.
+A user that already has those steps accomplished will have the URL received by software directly. That software will base64URL decode the string and can read the invitation message directly out of the `c_i` query parameter, without loading the URL.
 
-If they _invitee_ wants to accept the connection invitation, they will use the information present in the invitation message to prepare the request
+> **NOTE**: In receiving the invitation, the base64url decode implementation used **MUST**
+> correctly decode padded and unpadded base64URL encoded data.
+
+If the _invitee_ wants to accept the connection invitation, they will use the information present in the invitation message to prepare the request
 
 ## 1. Connection Request
 
@@ -264,7 +267,7 @@ The _invitee_ will provision a new DID according to the DID method spec. For a P
 ```jsonc
 {
   "@id": "5678876542345",
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/request",
+  "@type": "https://didcomm.org/connections/1.0/request",
   "label": "Bob",
   "connection": {
     "DID": "B.did@B:A",
@@ -275,7 +278,6 @@ The _invitee_ will provision a new DID according to the DID method spec. For a P
   }
 }
 ```
-
 #### Attributes
 
 - The `@type` attribute is a required string value that denotes that the received message is a connection request.
@@ -283,6 +285,43 @@ The _invitee_ will provision a new DID according to the DID method spec. For a P
 - The `connection` attribute contains the `DID` and `DIDDoc` attributes. This format maintains consistency with the Response message where this attribute is signed.
 - The `DID` indicates the DID of the user requesting the connection.
 - The `DIDDoc` contains the DID document for the requesting user. If the DID method for the presented DID is not a peer method and the DID document is resolvable on a ledger, the `DIDDoc` attribute is optional.
+
+#### DIDDoc Example
+
+An example of the DID document contents is the following JSON. This format was implemented in some early agents as the [DIDComm DIDDoc Conventions](../0067-didcomm-diddoc-conventions/README.md) RFC was being formalized and so does not match that RFC exactly. For example, the use of the `IndyAgent` service endpoint.
+Future versions of this protocol will align precisely with that RFC.
+
+``` jsonc
+{
+  "@context": "https://w3id.org/did/v1",
+  "id": "did:sov:QUmsj7xwB82QAuuzfmvhAi",
+  "publicKey": [
+    {
+      "id": "did:sov:QUmsj7xwB82QAuuzfmvhAi#1",
+      "type": "Ed25519VerificationKey2018",
+      "controller": "did:sov:QUmsj7xwB82QAuuzfmvhAi",
+      "publicKeyBase58": "DoDMNYwMrSN8ygGKabgz5fLA9aWV4Vi8SLX6CiyN2H4a"
+    }
+  ],
+  "authentication": [
+    {
+      "type": "Ed25519SignatureAuthentication2018",
+      "publicKey": "did:sov:QUmsj7xwB82QAuuzfmvhAi#1"
+    }
+  ],
+  "service": [
+    {
+      "id": "did:sov:QUmsj7xwB82QAuuzfmvhAi;indy",
+      "type": "IndyAgent",
+      "priority": 0,
+      "recipientKeys": [
+        "DoDMNYwMrSN8ygGKabgz5fLA9aWV4Vi8SLX6CiyN2H4a"
+      ],
+      "serviceEndpoint": "http://192.168.65.3:8030"
+    }
+  ]
+}
+```
 
 #### Request Transmission
 
@@ -332,7 +371,7 @@ The connection response message is used to complete the connection. This message
 
 ```jsonc
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/response",
+  "@type": "https://didcomm.org/connections/1.0/response",
   "@id": "12345678900987654321",
   "~thread": {
     "thid": "<@id of request message>"
@@ -347,20 +386,20 @@ The connection response message is used to complete the connection. This message
 }
 ```
 
-The above message is required to be signed as described in HIPE ???. The `connection` attribute above will be base64URL encoded and included as part of the `sig_data` attribute of the signed field. The result looks like this:
+The above message is required to be signed as described in [RFC 0234 Signature Decorator](../../features/0234-signature-decorator/README.md). The `connection` attribute above will be base64URL encoded and included as part of the `sig_data` attribute of the signed field. The result looks like this:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/response",
+  "@type": "https://didcomm.org/connections/1.0/response",
   "@id": "12345678900987654321",
   "~thread": {
     "thid": "<@id of request message>"
   },
   "connection~sig": {
-    "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/signature/1.0/ed25519Sha512_single",
+    "@type": "https://didcomm.org/signature/1.0/ed25519Sha512_single",
     "signature": "<digital signature function output>",
     "sig_data": "<base64URL(64bit_integer_from_unix_epoch||connection_attribute)>",
-    "signers": "<signing_verkey>"
+    "signer": "<signing_verkey>"
   }
 }
 ```
@@ -389,7 +428,7 @@ When the message is transmitted, we are now in the `responded` state.
 
 #### Response Processing
 
-When the _invitee_ receives the `response` message, they will verify the `change_sig` provided. After validation, they will update their wallet with the new connection information. If the endpoint was changed, they may wish to execute a Trust Ping to verify that new endpoint.
+When the _invitee_ receives the `response` message, they will verify the `sig_data` provided. After validation, they will update their wallet with the new connection information. If the endpoint was changed, they may wish to execute a Trust Ping to verify that new endpoint.
 
 #### Response Errors
 

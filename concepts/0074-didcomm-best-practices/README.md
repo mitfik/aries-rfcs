@@ -27,11 +27,15 @@ we offer the following guidelines.
 
 ## Tutorial
 
+### Normative language
+
+RFCs about protocols and DIDComm behaviors follow commonly understood conventions about normative language, including words like "MUST", "SHOULD", and "MAY". These conventions are documented in [IETF's RFC 2119](https://tools.ietf.org/html/rfc2119). Existing documents that were written before we clarified our intention to follow these conventions are grandfathered but should be updated to conform.
+
 ### Names
 
 Names show up in lots of places in our work. We name RFCs, concepts
 defined in those RFCs, [protocols](../0003-protocols/README.md),
-[message types](../0003-protocols/uris.md#mturi), keys in JSON, and
+[message types](../0003-protocols/README.md#mturi), keys in JSON, and
 much more.
 
 The two most important best practices with names are:
@@ -39,7 +43,8 @@ The two most important best practices with names are:
 * Pick descriptive and accurate names. [Thoughtfully chosen names can
 save enormous amounts of commenting and documentation](
 https://codecraft.co/2012/08/28/good-code-is-named-right/).
-* Be consistent.
+* Be consistent. Particularly within an RFC and especially within the JSON for a set of related messages.
+  * For example, don't mix snake_case and other conventions within a single family of DIDComm messages.
 
 These are so common-sense that we won't argue them. But a few other
 points are worthy of comment.
@@ -71,6 +76,11 @@ of the code around you, and in JSON that's intended to be interoperable,
 use snake_case unless you have a good reason not to. Definitely use the same case conventions
 as the other keys in the same JSON schema.
 
+#### Pluralization
+
+The names of JSON items that represent arrays should be pluralized whenever possible,
+while singleton items should not.
+
 #### Terminology and Notation
 
 Use terms correctly and consistently.
@@ -101,7 +111,7 @@ RFCs that define a protocol should be named in the form `<do something>-protocol
 be clear; a protocol name like "connection" is [too vague because you can do lots of things
 with connections](https://docs.google.com/presentation/d/11UVwJ2xqMmXyXr2BVsjz53S-tbMUhD1tmkhzfN7KMRw/edit#slide=id.g5b1be5d0c1_0_66).
 
-Protocol RFCs need to be [versioned thoughtfully](../../concepts/0003-protocols/semver.md).
+Protocol RFCs need to be [versioned thoughtfully](../../concepts/0003-protocols/README.md#semver-rules-for-protocols).
 However, we do not put version numbers in a protocl RFC's folder name. Rather, the RFC
 folder contains all versions of the protocol, with the latest version documented in
 README.md, and earlier versions documented in subdocs named according to version, as
@@ -360,7 +370,7 @@ https://en.wikipedia.org/wiki/ISO_8601#Time_offsets_from_UTC).
 
 ### Blobs
 
-In general, blobs are encoded as base64 strings in DIDComm.
+In general, blobs are [encoded as base64url](https://tools.ietf.org/html/rfc4648#section-5) strings in DIDComm.
 
 ### Unicode
 
@@ -388,7 +398,7 @@ to make the content as useful as possible:
 with (possibly) many documents.
 * Hyperlinks from one RFC to another should be in relative form (`../features/my-rfc/README.md`),
 not in absolute form (`/features/my-rfc/README.md`) or external form
-(`https://github.com/hyperledger/aries-rfcs/blob/master/features/my-rfc/README.md`).
+(`https://github.com/hyperledger/aries-rfcs/blob/main/features/my-rfc/README.md`).
 This lets us move or embed the content, and it prevents branch names from
 cluttering the hyperlink.
 
@@ -397,6 +407,12 @@ it, go to the root of the repo and run `pytest code` -- or simply invoke the
 `check_links` script directly. Normally, `check_links` does not test external
 hyperlinks on the web, because it is too time-consuming; if you want that check,
 add `--full` as a command-line argument.
+
+### Security Considerations
+
+#### Replay attacks
+
+It should be noted that when defining a protocol that has domain specific requirements around preventing replay attacks an `@id` property SHOULD be required. Given the `@id` field is most commonly set to be a UUID, it usually provides sufficient randomness that a nonce would in preventing replay attacks. This means that sufficient care will be needed in processing of the `@id` field however, to make sure the `@id` field hasn't been used before. In some cases, nonces require being unpredictable as well. In this case, greater review should be taken as to how the `@id` field should be used in the domain specific protocol. Additionally, in the event where the `@id` field is not adequate, it's recommended that an additional `nonce` field be required by the domain specific protocol specification.
 
 ## Reference
 

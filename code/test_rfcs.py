@@ -16,6 +16,7 @@ def scratch_space():
     x.cleanup()
 
 
+@pytest.mark.skip(reason="using actions index generation")
 def test_index(scratch_space):
     temp_idx = os.path.join(scratch_space.name, 'index.md')
     import generate_index
@@ -159,20 +160,20 @@ def test_impls():
                         matches.append(ref[3])
         return matches
 
-    for key, value in pretty_for_normalized_names.items():
-        if len(value) > 1:
-            offenders = '\n'.join(find_refs(pretty_for_normalized_names, key, value))
-            e(offenders, '\n  inconsistent variants on impl name: %s' % ', '.join(['"%s"' % v for v in value]))
+    # for key, value in pretty_for_normalized_names.items():
+    #     if len(value) > 1:
+    #         offenders = '\n'.join(find_refs(pretty_for_normalized_names, key, value))
+    #         e(offenders, '\n  inconsistent variants on impl name: %s' % ', '.join(['"%s"' % v for v in value]))
 
-    for key, value in normalized_for_base_uri.items():
-        if len(value) > 1:
-            offenders = '\n'.join(find_refs(normalized_for_base_uri, key, value))
-            e(offenders, '\n  same site maps to multiple impl names: %s' % ', '.join(['"%s"' % v for v in value]))
+    # for key, value in normalized_for_base_uri.items():
+    #     if len(value) > 1:
+    #         offenders = '\n'.join(find_refs(normalized_for_base_uri, key, value))
+    #         e(offenders, '\n  same site maps to multiple impl names: %s' % ', '.join(['"%s"' % v for v in value]))
 
-    for key, value in base_uri_for_normalized.items():
-        if len(value) > 1:
-            offenders = '\n'.join(find_refs(base_uri_for_normalized, key, value))
-            e(offenders, '\n  impl name "%s" maps to multiple sites: %s' % (key, ', '.join(['"%s"' % v for v in value])))
+    # for key, value in base_uri_for_normalized.items():
+    #     if len(value) > 1:
+    #         offenders = '\n'.join(find_refs(base_uri_for_normalized, key, value))
+    #         e(offenders, '\n  impl name "%s" maps to multiple sites: %s' % (key, ', '.join(['"%s"' % v for v in value])))
 
     if errors:
         msg = '\n' + '\n'.join(errors)

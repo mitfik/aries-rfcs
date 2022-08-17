@@ -8,6 +8,15 @@
 - Start Date: 2019-01-30
 - Tags: [feature](/tags.md#feature), [decorator](/tags.md#decorator), [protocol](/tags.md#protocol), [credentials](/tags.md#credentials), [test-anomaly](/tags.md#test-anomaly)
 
+## Version Change Log
+
+### 1.1/propose-credential
+
+In version 1.1 of the propose-credential message, the following optional fields were added:
+schema_name, schema_version, and issuer_did.
+
+The previous version is [1.0/propose-credential](https://github.com/hyperledger/aries-rfcs/blob/527849e/features/0036-issue-credential/README.md#propose-credential).
+
 ## Summary
 
 Formalizes messages used to issue a credential--whether the credential is JWT-oriented, JSON-LD-oriented, or ZKP-oriented. The general flow is similar, and this protocol intends to handle all of them. If you are using a credential type that doesn't fit this protocol, please [raise a Github issue](/github-issues.md).
@@ -26,9 +35,25 @@ There are two roles in this protocol: Issuer and Holder. Technically, the latter
 
 ### States
 
-The choreography diagrams shown below detail how state evolves in this protocol, in a "happy path."
+The choreography diagrams shown below detail how state evolves in this protocol, in a "happy path." The states include:
 
-Errors might occur in various places. For example, an Issuer might offer a credential for a price that the Holder is unwilling to pay. All errors are modeled with a `problem-report` message. Easy-to-anticipate errors reset the flow as shown in the diagrams, and use the code `issuance-abandoned`; more exotic errors (e.g., server crashed at Issuer headquarters in the middle of a workflow) may have different codes but still cause the flow to be abandoned in the same way.
+#### states for Issuer
+
+* proposal-received
+* offer-sent
+* request-received
+* credential-issued
+* done
+
+#### states for Holder
+
+* proposal-sent
+* offer-received
+* request-sent
+* credential-received
+* done
+
+Errors might occur in various places. For example, an Issuer might offer a credential for a price that the Holder is unwilling to pay. All errors are modeled with a `problem-report` message. Easy-to-anticipate errors reset the flow as shown in the diagrams, and use the code `issuance-abandoned`; more exotic errors (e.g., server crashed at Issuer headquarters in the middle of a workflow) may have different codes but still cause the flow to be abandoned in the same way. That is, in this version of the protocol, all errors cause the state of both parties (the sender and the receiver of the `problem-report`) to revert to `null` (meaning it is no longer engaged in the protocol at all). Future versions of the protocol may allow more granular choices (e.g., requesting and receiving a (re-)send of the `issue-credential` message if the Holder times out while waiting in the `request-sent` state).
 
 ### Messages
 
@@ -48,7 +73,7 @@ In addition, the [`ack`](../0015-acks/README.md) and [`problem-report`](../0035-
 <blockquote>
 Note: This diagram was made in draw.io. To make changes:
 
-- upload the drawing HTML from this folder to the [draw.io](https://draw.io) site (Import From...GitHub), 
+- upload the drawing HTML from this folder to the [draw.io](https://draw.io) site (Import From...GitHub),
 - make changes,
 - export the picture and HTML to your local copy of this repo, and
 - submit a pull request.
@@ -69,17 +94,21 @@ The offer and proposal messages are part of an optional negotiation phase and ma
 An optional message sent by the potential Holder to the Issuer to initiate the protocol or in response to a `offer-credential` message when the Holder wants some adjustments made to the credential data offered by Issuer.
 
 >Note: In Hyperledger Indy, where the `request-credential` message can **only** be sent in response to an `offer-credential` message, the `propose-credential` message is the only way for a potential Holder to initiate the workflow.
- 
+
  Schema:
 
 ```json
 {
-    "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/propose-credential",
+    "@type": "https://didcomm.org/issue-credential/1.1/propose-credential",
     "@id": "<uuid-of-propose-message>",
     "comment": "some comment",
     "credential_proposal": <json-ld object>,
+    "schema_issuer_did": "DID of the proposed schema issuer",
     "schema_id": "Schema ID string",
+    "schema_name": "Schema name string",
+    "schema_version": "Schema version string",
     "cred_def_id": "Credential Definition ID string"
+    "issuer_did": "DID of the proposed issuer"
 }
 ```
 
@@ -87,8 +116,12 @@ Description of attributes:
 
 * `comment` -- an optional field that provides human readable information about this Credential Proposal, so the proposal can be evaluated by human judgment. Follows [DIDComm conventions for l10n](../0043-l10n/README.md).
 * `credential_proposal` -- an optional JSON-LD object that represents the credential data that Prover wants to receive. It matches the schema of [Credential Preview](#preview-credential).
+* `schema_issuer_did` -- optional filter to request credential based on a particular Schema issuer DID.
 * `schema_id` -- optional filter to request credential based on a particular Schema. This might be helpful when requesting a version 1 passport instead of a version 2 passport, for example.
+* `schema_name` -- optional filter to request credential based on a schema name. This is useful to allow a more user-friendly experience of requesting a credential by schema name.
+* `schema_version` -- optional filter to request credential based on a schema version. This is useful to allow a more user-friendly experience of requesting a credential by schema name and version.
 * `cred_def_id` -- optional filter to request credential based on a particular Credential Definition. This might be helpful when requesting a commercial driver's license instead of an ordinary driver's license, for example.
+* `issuer_did` -- optional filter to request a credential issued by the owner of a particular DID.
 
 #### Offer Credential
 
@@ -98,7 +131,7 @@ Schema:
 
 ```json
 {
-    "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/offer-credential",
+    "@type": "https://didcomm.org/issue-credential/1.0/offer-credential",
     "@id": "<uuid-of-offer-message>",
     "comment": "some comment",
     "credential_preview": <json-ld object>,
@@ -119,7 +152,7 @@ Description of fields:
 * `comment` -- an optional field that provides human readable information about this Credential Offer, so the offer can be evaluated by human judgment. Follows [DIDComm conventions for l10n](../0043-l10n/README.md).
 * `credential_preview` -- a JSON-LD object that represents the credential data that Issuer is willing to issue. It matches the schema of [Credential Preview](#preview-credential);
 * `offers~attach` -- an array of attachments that further define the credential being offered. This might be used to clarify which formats or format versions will be issued.
-  * For Indy, the attachment includes a nonce and key correctness proof to facilitate integrity checks. It is a base64-encoded version of the data returned from [`indy_issuer_create_credential_offer()`](https://github.com/hyperledger/indy-sdk/blob/57dcdae74164d1c7aa06f2cccecaae121cefac25/libindy/src/api/anoncreds.rs#L280).
+  * For Indy, the attachment includes a nonce and key correctness proof to facilitate integrity checks. It is a base64url-encoded version of the data returned from [`indy_issuer_create_credential_offer()`](https://github.com/hyperledger/indy-sdk/blob/57dcdae74164d1c7aa06f2cccecaae121cefac25/libindy/src/api/anoncreds.rs#L280).
 
 The Issuer may add a [`~payment-request` decorator](../0075-payment-decorators/README.md#payment_request) to this message to convey the need for payment before issuance. See the [payment section below](#payments-during-credential-exchange) for more details.
 
@@ -133,7 +166,7 @@ Schema:
 
 ```json
 {
-    "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/request-credential",
+    "@type": "https://didcomm.org/issue-credential/1.0/request-credential",
     "@id": "<uuid-of-request-message>",
     "comment": "some comment",
     "requests~attach": [
@@ -152,7 +185,7 @@ Description of Fields:
 
 * `comment` -- an optional field that provides human readable information about this Credential Request, so it can be evaluated by human judgment. Follows [DIDComm conventions for l10n](../0043-l10n/README.md).
 * `requests~attach` -- an array of [attachments](../../concepts/0017-attachments/README.md) defining the requested formats for the credential.
-  * For Indy, the attachment is a base64-encoded version of the data returned from [`indy_prover_create_credential_req()`](https://github.com/hyperledger/indy-sdk/blob/57dcdae74164d1c7aa06f2cccecaae121cefac25/libindy/src/api/anoncreds.rs#L658).
+  * For Indy, the attachment is a base64url-encoded version of the data returned from [`indy_prover_create_credential_req()`](https://github.com/hyperledger/indy-sdk/blob/57dcdae74164d1c7aa06f2cccecaae121cefac25/libindy/src/api/anoncreds.rs#L658).
 
 This message may have a [`~payment-receipt` decorator](../0075-payment-decorators/README.md#payment_receipt) to prove to the Issuer that the potential Holder has satisfied a payment requirement. See the [payment section below](#payments-during-credential-exchange).
 
@@ -164,7 +197,7 @@ Schema:
 
 ```json
 {
-    "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/issue-credential",
+    "@type": "https://didcomm.org/issue-credential/1.0/issue-credential",
     "@id": "<uuid-of-issue-message>",
     "comment": "some comment",
     "credentials~attach": [
@@ -183,9 +216,27 @@ Description of fields:
 
 * `comment` -- an optional field that provides human readable information about the issued credential, so it can be evaluated by human judgment. Follows [DIDComm conventions for l10n](../0043-l10n/README.md).
 * `credentials~attach` -- an array of attachments containing the issued credentials.
-  * For Indy, the attachment contains data from libindy about credential to be issued, base64-encoded, as returned from `libindy`. For more information see the [Libindy API](https://github.com/hyperledger/indy-sdk/blob/57dcdae74164d1c7aa06f2cccecaae121cefac25/libindy/src/api/anoncreds.rs#L338).
-  
-If the issuer wants an acknowledgement that the issued credential was received, this message must be decorated with `~please-ack`, and it is then best practice for the new Holder to respond with an explicit `ack` message as described in [0015: ACKs](../0015-acks/README.md).
+  * For Indy, the attachment contains data from libindy about credential to be issued, base64url-encoded, as returned from `libindy`. For more information see the [Libindy API](https://github.com/hyperledger/indy-sdk/blob/57dcdae74164d1c7aa06f2cccecaae121cefac25/libindy/src/api/anoncreds.rs#L338).
+
+If the issuer wants an acknowledgement that the issued credential was accepted, this message must be decorated with `~please-ack`, and it is then best practice for the new Holder to respond with an explicit `ack` message as described in [0317: Please ACK Decorator](../0317-please-ack/README.md).
+
+##### Encoding Claims for Indy-based Verifiable Credentials
+
+Claims in Hyperledger Indy-based verifiable credentials are put into the credential in two forms, `raw` and `encoded`. `raw` is the actual data value, and `encoded` is the (possibly derived) integer value that is used in presentations. At this time, Indy does not take an opinion on the method used for encoding the raw value. This will change with the Rich Schema work that is underway in the Indy/Aries community, where the encoding method will be part of the credential metadata available from the public ledger.
+
+Until the Rich Schema mechanism is deployed, Aries issuers and verifiers must agree on the encoding method so that the verifier can check that the `raw` value returned in a presentation corresponds to the proven `encoded` value. The following is the encoding algorithm that MUST be used by Issuers when creating credentials and SHOULD be verified by Verifiers receiving presentations:
+
+- keep any 32-bit integer as is
+- for data of any other type:
+  - convert to string (use string "None" for null)
+  - encode via utf-8 to bytes
+  - apply SHA-256 to digest the bytes
+  - convert the resulting digest bytes, big-endian, to integer
+  - stringify the integer as a decimal.
+
+An example implementation in Python can be found [here](https://github.com/hyperledger/aries-cloudagent-python/blob/0000f924a50b6ac5e6342bff90e64864672ee935/aries_cloudagent/messaging/util.py#L106).
+
+A gist of test value pairs can be found [here](https://gist.github.com/swcurran/78e5a9e8d11236f003f6a6263c6619a6).
 
 #### Preview Credential
 
@@ -193,7 +244,7 @@ This is not a message but an inner object for other messages in this protocol. I
 
 ```jsonc
 {
-    "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview",
+    "@type": "https://didcomm.org/issue-credential/1.0/credential-preview",
     "attributes": [
         {
             "name": "<attribute name>",
@@ -218,7 +269,7 @@ The optional `mime-type` advises the issuer how to render a binary attribute, to
 The mandatory `value` holds the attribute value:
 
 * if `mime-type` is missing (null), then `value` is a string. In other words, implementations interpret it the same as any other key+value pair in JSON
-* if `mime-type` is not null, then `value` is always a base64-encoded string that represents a binary BLOB, and `mime-type` tells how to interpret the BLOB after base64-decoding.
+* if `mime-type` is not null, then `value` is always a base64url-encoded string that represents a binary BLOB, and `mime-type` tells how to interpret the BLOB after base64url-decoding.
 
 ## Threading
 
@@ -281,4 +332,4 @@ The following lists the implementations (if any) of this RFC. Please do a pull r
 
 Name / Link | Implementation Notes
 --- | ---
- |  |
+[Streetcred.id](https://streetcred.id/) | Commercial mobile and web app built using Aries Framework - .NET [MISSING test results](/tags.md#test-anomaly)
